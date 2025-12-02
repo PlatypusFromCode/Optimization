@@ -17,7 +17,7 @@ class RoomType(Enum):
 
 class Building(Enum):
     GSS = 1
-    M7 = 2
+    M13 = 2
     C11 = 3
 
 @dataclass
@@ -34,12 +34,12 @@ class Teacher:
 class Course:
     course_id: int
     faculty: Faculty
-    assumed_capacity: int
+    expected_num_students: int
     semester: List[str]
     name: str
     facility_constr: List[RoomType]
 
-
+@dataclass
 class Room:
     room_id: int
     address: Building
