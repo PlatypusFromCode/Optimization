@@ -22,6 +22,8 @@ class Building(Enum):
 
 @dataclass
 class Teacher:
+    teacher_id: int
+    teacher_name: str
     faculty: Faculty
     course_name: List[str]     # список названий курсов
     hard_time_constr: List[int]
@@ -30,6 +32,7 @@ class Teacher:
 
 @dataclass
 class Course:
+    course_id: int
     faculty: Faculty
     assumed_capacity: int
     semester: List[str]
@@ -38,6 +41,7 @@ class Course:
 
 
 class Room:
+    room_id: int
     address: Building
     name: str
     type: RoomType
