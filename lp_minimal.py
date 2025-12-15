@@ -9,9 +9,9 @@ import json_loaders_savers
 def main():
     m = Model()
 
-    teachers_objects: list[Teacher] = []  # probably use loaders here
-    courses_objects: list[Course] = []
-    rooms_objects: list[Room] = []
+    teachers_objects: list[Teacher] = json_loaders_savers.load_teachers("teachers.json")  # probably use loaders here
+    courses_objects: list[Course] = json_loaders_savers.load_courses("courses.json")
+    rooms_objects: list[Room] = json_loaders_savers.load_rooms("rooms.json")
 
     teachers_id_list = [t.teacher_id for t in teachers_objects]  # lists of ids
     courses_id_list = [c.course_id for c in courses_objects]
@@ -22,7 +22,12 @@ def main():
     course_dict_id_obj = {c.course_id: c for c in courses_objects}  # dict in form of obj_id:obj
     room_dict_id_obj = {r.room_id: r for r in rooms_objects}
 
-    semesters = set(c.semester for c in courses_objects)  # for example SC4DMsem1
+    semesters = {
+        sem
+        for c in courses_objects
+        for sem in c.semester
+    }
+    # for example SC4DMsem1
 
     x = m.addVars(slots, teachers_id_list, courses_id_list, rooms_id_list, vtype=GRB.BINARY, name="x")  # x[slot, teacher, course, room]
 
@@ -32,7 +37,7 @@ def main():
     hard_constrains.add_teacher_hard_time_constraints(m, x, teachers_id_list, teacher_dict_id_obj, courses_id_list, rooms_id_list)
     hard_constrains.add_room_capacity_constr(m, x, courses_id_list, rooms_id_list, course_dict_id_obj, room_dict_id_obj, slots, teachers_id_list)
     hard_constrains.add_room_type_constraints(m, x, slots, teachers_id_list, courses_id_list, rooms_id_list, course_dict_id_obj, room_dict_id_obj)
-    hard_constrains.add_all_courses_scheduled_constraint(m, x, slots, teachers_id_list, courses_id_list, rooms_id_list)
+    hard_constrains.add_all_courses_scheduled_constraint(m, x, courses_id_list,teachers_id_list, rooms_id_list, slots)
 
     #dict of weights by constraints names so the weights are easily changable
     weights_by_name: dict[str, float] = { "TEACHER_SOFT_TIME" : 0.1,
@@ -42,7 +47,7 @@ def main():
     #dict of linear expressions for setObjective, we use it for agile weight setting
     soft_constrs_dict_name_grexpr: dict[str, gp.LinExpr] = {
         "TEACHER_SOFT_TIME" : soft_constrains.add_teacher_soft_time_objective(m,x, teachers_id_list, teacher_dict_id_obj, courses_id_list, rooms_id_list, weights_by_name["TEACHER_SOFT_TIME"]),
-        "ROOM_WASTE" : soft_constrains.add_room_waste_objective(m, x, courses_objects, rooms_id_list, course_dict_id_obj, room_dict_id_obj, slots, teachers_id_list, weights_by_name["ROOM_WASTE"]),
+        "ROOM_WASTE" : soft_constrains.add_room_waste_objective(m, x, courses_id_list, rooms_id_list, course_dict_id_obj, room_dict_id_obj, slots, teachers_id_list, weights_by_name["ROOM_WASTE"]),
         "FACULTY_MISMATCH" : soft_constrains.add_faculty_mismatch_objective(m,x,courses_id_list,rooms_id_list,course_dict_id_obj,room_dict_id_obj, slots, teachers_id_list, weights_by_name["FACULTY_MISMATCH"]),
     }
 
