@@ -34,6 +34,7 @@ def add_teacher_soft_time_objective(
             )
 
     penalty_expr *= weight
+    return penalty_expr
 
 
 def add_room_waste_objective(
@@ -66,6 +67,7 @@ def add_room_waste_objective(
                         waste_expr += (cap - exp) * x[slot, t_id, c_id, r_id]
 
     waste_expr *= weight
+    return waste_expr
 
 
 
@@ -98,6 +100,7 @@ def add_faculty_mismatch_objective(
                         mismatch_expr += x[slot, t_id, c_id, r_id]
 
     mismatch_expr *= weight
+    return mismatch_expr
 
 
 #zum laufen bringen und die kombination von den 2 programmen mit großen inputs (huge random example) vergleichen.

@@ -1,6 +1,8 @@
+import decimal
 from dataclasses import dataclass
 from typing import List
 from enum import Enum
+
 
 class Faculty(Enum):
     BU = 1
@@ -25,7 +27,7 @@ class Teacher:
     teacher_id: int
     teacher_name: str
     faculty: Faculty
-    course_name: List[str]     # список названий курсов
+    course_name: List[str]     # course name list
     hard_time_constr: List[int]
     soft_time_constr: List[int]
 
@@ -37,7 +39,10 @@ class Course:
     expected_num_students: int
     semester: List[str]
     name: str
-    facility_constr: List[RoomType]
+    facility_constr: List[RoomType] #it is a course type as well lecture room for lectures
+    soft_time_constr: List[int]
+    times_per_week: decimal.Decimal # 1/2 if every 2 weeks
+
 
 @dataclass
 class Room:

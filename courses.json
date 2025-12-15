@@ -1,0 +1,32 @@
+[
+  {
+    "course_id": 101,
+    "faculty": "BU",
+    "expected_num_students": 80,
+    "semester": ["SC4DMsem1"],
+    "name": "Microeconomics",
+    "facility_constr": ["LECTURE"],
+    "soft_time_constr": [4],
+    "times_per_week": "1"
+  },
+  {
+    "course_id": 102,
+    "faculty": "KG",
+    "expected_num_students": 30,
+    "semester": ["SC4DMsem1"],
+    "name": "Databases",
+    "facility_constr": ["COMPUTER"],
+    "soft_time_constr": [],
+    "times_per_week": "1"
+  },
+  {
+    "course_id": 103,
+    "faculty": "M",
+    "expected_num_students": 25,
+    "semester": ["SC4DMsem2"],
+    "name": "Linear Algebra",
+    "facility_constr": ["LECTURE", "SEMINAR"],
+    "soft_time_constr": [0],
+    "times_per_week": "1"
+  }
+]
