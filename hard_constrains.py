@@ -39,10 +39,9 @@ def add_no_semester_overlapping_constr(m, x, semesters, course_by_id,  slots, te
 
     for sem in semesters:
 
-
         courses_in_sem = [
             c_id for c_id in courses
-            if course_by_id[c_id].semester == sem
+            if sem in course_by_id[c_id].semester
         ]
 
         for slot in slots:

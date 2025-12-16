@@ -4,23 +4,7 @@
     "address": "GSS",
     "name": "GSS-H1",
     "type": "LECTURE",
-    "faculty": "BU",
-    "capacity": 120
-  },
-  {
-    "room_id": 202,
-    "address": "M13",
-    "name": "M13-PC1",
-    "type": "COMPUTER",
-    "faculty": "KG",
-    "capacity": 35
-  },
-  {
-    "room_id": 203,
-    "address": "C11",
-    "name": "C11-S2",
-    "type": "SEMINAR",
     "faculty": "M",
-    "capacity": 30
+    "capacity": 120
   }
 ]

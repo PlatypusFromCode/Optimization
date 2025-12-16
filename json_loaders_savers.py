@@ -48,7 +48,7 @@ def load_courses(path: str) -> list[Course]:
             expected_num_students=item["expected_num_students"],
             semester=item["semester"],
             name=item["name"],
-            facility_constr=[type[rt] for rt in item["facility_constr"]],
+            facility_constr=[RoomType[t] for t in item["facility_constr"]],
             soft_time_constr=item["soft_time_constr"],
             times_per_week = Decimal(item["times_per_week"])
 
@@ -172,7 +172,7 @@ def print_schedule_for_semester(
 
     for slot in slots:
         for c_id in courses_id_list:
-            if course_by_id[c_id].semester != semester:
+            if semester not in course_by_id[c_id].semester:
                 continue
 
             for t_id in teachers_id_list:

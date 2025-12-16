@@ -62,7 +62,12 @@ def main():
     m.Params.OutputFlag = 1  # 0 = still, 1 = normal
 
     # Optimieren
-    m.optimize()   
+    m.optimize()
+
+    if m.Status == GRB.INFEASIBLE:
+        print("Model infeasible, computing IIS...")
+        m.computeIIS()
+        m.write("model.ilp")
 
     #print for tests
     if m.Status == GRB.OPTIMAL:
@@ -72,7 +77,7 @@ def main():
         json_loaders_savers.print_schedule_for_semester(
             m,
             x,
-            semester="SC4DMsem1",
+            semester="CS4DMsem1",
             slots=slots,
             teachers_id_list=teachers_id_list,
             courses_id_list=courses_id_list,
