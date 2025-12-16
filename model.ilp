@@ -1,0 +1,16 @@
+\ Model _copy
+\ LP format - for model browsing. Use MPS format to capture full model detail.
+Minimize
+ 
+Subject To
+ R15: x[0,1,101,201] = 0
+ R16: x[1,1,101,201] = 0
+ R17: x[2,1,101,201] = 0
+ R18: x[3,1,101,201] = 0
+ R19: x[4,1,101,201] = 0
+ R20: x[0,1,101,201] + x[1,1,101,201] + x[2,1,101,201] + x[3,1,101,201]
+   + x[4,1,101,201] >= 1
+Bounds
+Binaries
+ x[0,1,101,201] x[1,1,101,201] x[2,1,101,201] x[3,1,101,201] x[4,1,101,201]
+End

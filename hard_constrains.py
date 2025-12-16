@@ -39,10 +39,9 @@ def add_no_semester_overlapping_constr(m, x, semesters, course_by_id,  slots, te
 
     for sem in semesters:
 
-
         courses_in_sem = [
             c_id for c_id in courses
-            if course_by_id[c_id].semester == sem
+            if sem in course_by_id[c_id].semester
         ]
 
         for slot in slots:
@@ -103,4 +102,23 @@ def add_room_type_constraints(
                         m.addConstr(
                             x[slot, t_id, c_id, r_id] == 0
                         )
+
+
+def add_all_courses_scheduled_constraint(
+    m,
+    x,
+    courses_id_list,
+    teachers_id_list,
+    rooms_id_list,
+    slots
+):
+    for c_id in courses_id_list:
+        m.addConstr(
+            gp.quicksum(
+                x[s, t_id, c_id, r_id]
+                for s in slots
+                for t_id in teachers_id_list
+                for r_id in rooms_id_list
+            ) >= 1
+        )
 

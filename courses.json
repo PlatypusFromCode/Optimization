@@ -1,0 +1,62 @@
+[
+  {
+    "course_id": 101,
+    "faculty": "M",
+    "expected_num_students": 80,
+    "semester": ["CS4DMsem1"],
+    "name": "Course 1",
+    "facility_constr": ["LECTURE"],
+    "soft_time_constr": [4],
+    "times_per_week": "1"
+  },
+  {
+    "course_id": 102,
+    "faculty": "M",
+    "expected_num_students": 35,
+    "semester": ["CS4DMsem1"],
+    "name": "Course 2",
+    "facility_constr": ["SEMINAR"],
+    "soft_time_constr": [3],
+    "times_per_week": "1"
+  },
+  {
+    "course_id": 103,
+    "faculty": "AU",
+    "expected_num_students": 25,
+    "semester": ["CS4DMsem2"],
+    "name": "Course 3",
+    "facility_constr": ["LAB"],
+    "soft_time_constr": [0],
+    "times_per_week": "1"
+  },
+  {
+    "course_id": 104,
+    "faculty": "KG",
+    "expected_num_students": 45,
+    "semester": ["CS4DMsem2"],
+    "name": "Course 4",
+    "facility_constr": ["COMPUTER"],
+    "soft_time_constr": [2],
+    "times_per_week": "1"
+  },
+  {
+    "course_id": 105,
+    "faculty": "M",
+    "expected_num_students": 60,
+    "semester": ["CS4DMsem3"],
+    "name": "Course 5",
+    "facility_constr": ["LECTURE"],
+    "soft_time_constr": [1],
+    "times_per_week": "1"
+  },
+  {
+    "course_id": 106,
+    "faculty": "AU",
+    "expected_num_students": 20,
+    "semester": ["CS4DMsem3"],
+    "name": "Course 6",
+    "facility_constr": ["SEMINAR"],
+    "soft_time_constr": [],
+    "times_per_week": "1"
+  }
+]

@@ -1,5 +1,4 @@
 from gurobipy import Model, GRB
-import hard_constrains
 from structures import Teacher, Course, Room
 import gurobipy as gp
 import hard_constrains
@@ -15,8 +14,7 @@ T = [t.teacher_id for t in teachers] #lists of ids
 C = [c.course_id for c in courses]
 R = [r.room_id for r in rooms]
 
-slots = range(31)
-
+slots = range(31) # mon, thue, thur, fri 7.30 9.15 11.00 13.30 15.15 17.00 18.30 wed 7.30 9.15 11.00
 teacher_by_id = {t.teacher_id: t for t in teachers} #dict in form of obj_id:obj
 course_by_id = {c.course_id: c for c in courses} #dict in form of obj_id:obj
 room_by_id = {r.room_id: r for r in rooms}
