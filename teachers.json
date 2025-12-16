@@ -1,9 +1,41 @@
 [
   {
     "teacher_id": 1,
-    "teacher_name": "Alice Müller",
+    "teacher_name": "Teacher 1",
     "faculty": "M",
-    "course_name": ["Course 1"],
+    "course_name": ["Course 1", "Course 2"],
+    "hard_time_constr": [],
+    "soft_time_constr": []
+  },
+  {
+    "teacher_id": 2,
+    "teacher_name": "Teacher 2",
+    "faculty": "AU",
+    "course_name": ["Course 3"],
+    "hard_time_constr": [1],
+    "soft_time_constr": [4]
+  },
+  {
+    "teacher_id": 3,
+    "teacher_name": "Teacher 3",
+    "faculty": "KG",
+    "course_name": ["Course 4"],
+    "hard_time_constr": [],
+    "soft_time_constr": [2]
+  },
+  {
+    "teacher_id": 4,
+    "teacher_name": "Teacher 4",
+    "faculty": "M",
+    "course_name": ["Course 5"],
+    "hard_time_constr": [0],
+    "soft_time_constr": []
+  },
+  {
+    "teacher_id": 5,
+    "teacher_name": "Teacher 5",
+    "faculty": "AU",
+    "course_name": ["Course 6"],
     "hard_time_constr": [],
     "soft_time_constr": []
   }

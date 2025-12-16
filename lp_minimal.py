@@ -41,7 +41,7 @@ def main():
 
     #dict of weights by constraints names so the weights are easily changable
     weights_by_name: dict[str, float] = { "TEACHER_SOFT_TIME" : 0.1,
-                                          "ROOM_WASTE" : 0.1,
+                                          "ROOM_WASTE" : 0.7,
                                           "FACULTY_MISMATCH" : 0.1 }
 
     #dict of linear expressions for setObjective, we use it for agile weight setting

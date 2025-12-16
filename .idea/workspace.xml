@@ -7,8 +7,6 @@
     <list default="true" id="8100b9a7-ea62-457f-85dd-18e669babc2e" name="Changes" comment="additional hard constrains + json loaders">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/courses.json" beforeDir="false" afterPath="$PROJECT_DIR$/courses.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/hard_constrains.py" beforeDir="false" afterPath="$PROJECT_DIR$/hard_constrains.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/json_loaders_savers.py" beforeDir="false" afterPath="$PROJECT_DIR$/json_loaders_savers.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lp_minimal.py" beforeDir="false" afterPath="$PROJECT_DIR$/lp_minimal.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/rooms.json" beforeDir="false" afterPath="$PROJECT_DIR$/rooms.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/teachers.json" beforeDir="false" afterPath="$PROJECT_DIR$/teachers.json" afterDir="false" />
