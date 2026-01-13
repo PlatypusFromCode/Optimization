@@ -2,7 +2,7 @@
   {
     "room_id": 201,
     "address": "GSS",
-    "name": "GSS-H1",
+    "room_name": "GSS-H1",
     "type": "LECTURE",
     "faculty": "M",
     "capacity": 120
@@ -10,7 +10,7 @@
   {
     "room_id": 202,
     "address": "GSS",
-    "name": "GSS-S1",
+    "room_name": "GSS-S1",
     "type": "SEMINAR",
     "faculty": "M",
     "capacity": 40
@@ -18,7 +18,7 @@
   {
     "room_id": 203,
     "address": "M13",
-    "name": "M13-LAB1",
+    "room_name": "M13-LAB1",
     "type": "LAB",
     "faculty": "AU",
     "capacity": 30
@@ -26,7 +26,7 @@
   {
     "room_id": 204,
     "address": "C11",
-    "name": "C11-PC1",
+    "room_name": "C11-PC1",
     "type": "COMPUTER",
     "faculty": "KG",
     "capacity": 50
@@ -34,7 +34,7 @@
   {
     "room_id": 205,
     "address": "GSS",
-    "name": "GSS-H2",
+    "room_name": "GSS-H2",
     "type": "LECTURE",
     "faculty": "M",
     "capacity": 80
@@ -42,7 +42,7 @@
   {
     "room_id": 206,
     "address": "M13",
-    "name": "M13-S2",
+    "room_name": "M13-S2",
     "type": "SEMINAR",
     "faculty": "AU",
     "capacity": 25

@@ -21,6 +21,10 @@ class Building(Enum):
     GSS = 1
     M13 = 2
     C11 = 3
+    C13 = 4
+    M7 = 5
+    B11 = 6
+    HK7 = 7
 
 @dataclass
 class Teacher:
@@ -38,9 +42,10 @@ class Course:
     faculty: Faculty
     expected_num_students: int
     semester: List[str]
-    name: str
+    course_name: str
     facility_constr: List[RoomType] #it is a course type as well lecture room for lectures
     soft_time_constr: List[int]
+    hard_time_constr: List[int]
     times_per_week: decimal.Decimal # 1/2 if every 2 weeks
 
 
@@ -48,7 +53,7 @@ class Course:
 class Room:
     room_id: int
     address: Building
-    name: str
+    room_name: str
     type: RoomType
     faculty: Faculty
     capacity: int

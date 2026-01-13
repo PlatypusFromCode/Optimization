@@ -1,26 +1,42 @@
+import random
+
 from gurobipy import Model, GRB
 
 import soft_constrains
+import structures
 from structures import Teacher, Course, Room
 import gurobipy as gp
 import hard_constrains
 import json_loaders_savers
-
+import json_generator
 def main():
     m = Model()
+    random.seed(42)
+    ''' ========================= main lists ====================================== '''
+    #teachers_objects: list[Teacher] = json_loaders_savers.load_teachers("teachers.json")  # probably use loaders here
+    #courses_objects: list[Course] = json_loaders_savers.load_courses("courses.json")
+    #rooms_objects: list[Room] = json_loaders_savers.load_rooms("rooms.json")
 
-    teachers_objects: list[Teacher] = json_loaders_savers.load_teachers("teachers.json")  # probably use loaders here
-    courses_objects: list[Course] = json_loaders_savers.load_courses("courses.json")
-    rooms_objects: list[Room] = json_loaders_savers.load_rooms("rooms.json")
+
+    teachers_objects = json_generator.random_teachers(25)
+    courses_objects = json_generator.random_courses(70)
+    rooms_objects = json_generator.random_rooms(150)
+
+    print(len(teachers_objects), len(courses_objects), len(rooms_objects))
+
 
     teachers_id_list = [t.teacher_id for t in teachers_objects]  # lists of ids
     courses_id_list = [c.course_id for c in courses_objects]
     rooms_id_list = [r.room_id for r in rooms_objects]
 
-    slots = range(5)  # mon, thue, thur, fri 7.30 9.15 11.00 13.30 15.15 17.00 18.30 wed 7.30 9.15 11.00
+    #slots from 1 to 31 inc.
+    slots = range(1,32)
+    #slots = range(5)  # mon, thue, thur, fri 7.30 9.15 11.00 13.30 15.15 17.00 18.30 wed 7.30 9.15 11.00
     teacher_dict_id_obj = {t.teacher_id: t for t in teachers_objects}  # dict in form of obj_id:obj
     course_dict_id_obj = {c.course_id: c for c in courses_objects}  # dict in form of obj_id:obj
     room_dict_id_obj = {r.room_id: r for r in rooms_objects}
+
+    ''' =========================== helping lists ===================================='''
 
     semesters = {
         sem
@@ -28,6 +44,22 @@ def main():
         for sem in c.semester
     }
     # for example SC4DMsem1
+    remote_buildings = {structures.Building.C11}
+
+    days = [
+        range(1, 8),
+        range(8, 15),
+        range(15, 18),
+        range(18, 25),
+        range(25, 32),
+    ]
+
+    # dict of weights by constraints names so the weights are easily changable
+    weights_by_name: dict[str, float] = {"TEACHER_SOFT_TIME": 0.1,
+                                         "ROOM_WASTE": 0.7,
+                                         "FACULTY_MISMATCH": 0.1}
+
+    '''================================== applying constrains ================================'''
 
     x = m.addVars(slots, teachers_id_list, courses_id_list, rooms_id_list, vtype=GRB.BINARY, name="x")  # x[slot, teacher, course, room]
 
@@ -39,10 +71,7 @@ def main():
     hard_constrains.add_room_type_constraints(m, x, slots, teachers_id_list, courses_id_list, rooms_id_list, course_dict_id_obj, room_dict_id_obj)
     hard_constrains.add_all_courses_scheduled_constraint(m, x, courses_id_list,teachers_id_list, rooms_id_list, slots)
 
-    #dict of weights by constraints names so the weights are easily changable
-    weights_by_name: dict[str, float] = { "TEACHER_SOFT_TIME" : 0.1,
-                                          "ROOM_WASTE" : 0.7,
-                                          "FACULTY_MISMATCH" : 0.1 }
+
 
     #dict of linear expressions for setObjective, we use it for agile weight setting
     soft_constrs_dict_name_grexpr: dict[str, gp.LinExpr] = {
@@ -52,6 +81,7 @@ def main():
     }
 
 
+    '''======================================== Optimizing ==========================================='''
     # The exact objects function supposed to be minimized
     m.setObjective(soft_constrs_dict_name_grexpr["TEACHER_SOFT_TIME"] +
                    soft_constrs_dict_name_grexpr["ROOM_WASTE"] +
@@ -63,6 +93,10 @@ def main():
 
     # Optimieren
     m.optimize()
+
+
+    '''========================================= Results =============================================='''
+
 
     if m.Status == GRB.INFEASIBLE:
         print("Model infeasible, computing IIS...")

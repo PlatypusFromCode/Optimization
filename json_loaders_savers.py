@@ -47,8 +47,9 @@ def load_courses(path: str) -> list[Course]:
             faculty=Faculty[item["faculty"]],
             expected_num_students=item["expected_num_students"],
             semester=item["semester"],
-            name=item["name"],
+            course_name=item["course_name"],
             facility_constr=[RoomType[t] for t in item["facility_constr"]],
+            hard_time_constr= item["hard_time_constr"],
             soft_time_constr=item["soft_time_constr"],
             times_per_week = Decimal(item["times_per_week"])
 
@@ -63,7 +64,7 @@ json sample
     "faculty": "BU",
     "expected_num_students": 90,
     "semester": ["BI1", "UI1"],
-    "name": "Baukonstruktionen",
+    "course_name": "Baukonstruktionen",
     "facility_constr": ["LECTURE"]
   }
 ]
@@ -78,7 +79,7 @@ def load_rooms(path: str) -> list[Room]:
         Room(
             room_id=item["room_id"],
             address=Building[item["address"]],
-            name=item["name"],
+            room_name=item["room_name"],
             type=RoomType[item["type"]],
             faculty=Faculty[item["faculty"]],
             capacity=item["capacity"]
@@ -92,7 +93,7 @@ json sample
   {
     "room_id": 0,
     "address": "M13",
-    "name": "201",
+    "room_name": "201",
     "type": "LECTURE",
     "faculty": "BU",
     "capacity": 120
@@ -181,9 +182,9 @@ def print_schedule_for_semester(
                         found = True
                         print(
                             f"Slot {slot} | "
-                            f"Course {course_by_id[c_id].name} | "
+                            f"Course {course_by_id[c_id].course_name} | "
                             f"Teacher {teacher_by_id[t_id].teacher_name} | "
-                            f"Room {room_by_id[r_id].name}"
+                            f"Room {room_by_id[r_id].room_name}"
                         )
 
     if not found:

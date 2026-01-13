@@ -56,17 +56,17 @@ def add_no_semester_overlapping_constr(m, x, semesters, course_by_id,  slots, te
 
 
 
-def add_teacher_hard_time_constraints(m, x, teachers, teacher_by_id, courses, rooms):
+def add_teacher_hard_time_constraints(m, x, teachers_id_list, dict_teacher_id_obj, courses_ids, rooms_ids):
 
-    for t_id in teachers:
-        teacher = teacher_by_id[t_id]
+    for t_id in teachers_id_list:
+        teacher = dict_teacher_id_obj[t_id]
 
         for slot in teacher.hard_time_constr:
             m.addConstr(
                 gp.quicksum(
                     x[slot, t_id, c_id, r_id]
-                    for c_id in courses
-                    for r_id in rooms
+                    for c_id in courses_ids
+                    for r_id in rooms_ids
                 ) == 0
             )
 
