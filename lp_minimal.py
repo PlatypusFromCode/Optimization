@@ -4,11 +4,94 @@ from gurobipy import Model, GRB
 
 import soft_constrains
 import structures
-from structures import Teacher, Course, Room
+from structures import Teacher, Course, Room, Building, Faculty
 import gurobipy as gp
 import hard_constrains
 import json_loaders_savers
 import json_generator
+from collections import defaultdict
+
+'''============================================ helping functions ===================================================='''
+
+def analyze_iis(m):
+    reasons = defaultdict(list)
+
+    for constr in m.getConstrs():
+        if constr.IISConstr:
+            name = constr.ConstrName
+
+            if name.startswith("course_"):
+                reasons["courses"].append(name)
+            elif name.startswith("teacher_"):
+                reasons["teachers"].append(name)
+            elif name.startswith("room_"):
+                reasons["rooms"].append(name)
+            elif name.startswith("slot_"):
+                reasons["slots"].append(name)
+            else:
+                reasons["other"].append(name)
+
+    return reasons
+
+def get_unschedulable_objects_from_iis(m) -> tuple[list[int], dict[int, int], list[str]]:
+    unschedulable_courses = []
+    unschedulable_teachers_hard_time_dict = {}
+    breaks_counters = [0, 0, 0, 0, 0, 0, 0, 0]
+    allowed_types = []
+
+    m.computeIIS()
+
+    for constr in m.getConstrs():
+        if constr.IISConstr:
+            name = constr.ConstrName
+
+            if name.startswith("room_"):
+                if breaks_counters[0] == 0:
+                    print("unpredicted constraint break, must be no 2 courses per 1 room")
+                    breaks_counters[0] += 1
+
+
+            elif name.startswith("teacher_") and "_has_1_course_in_1_room_at_time_slot_" in name:
+                if breaks_counters[1] == 0:
+                    print("unpredicted constraint break, teacher cannot simultaneously teach 2 courses")
+                    breaks_counters[1] += 1
+
+
+            elif name.startswith("no_more_than_1_course_at_time_"):
+                if breaks_counters[2] == 0:
+                    print("unpredicted constraint break, no more than 1 course per slot at the same room")
+                    breaks_counters[2] += 1
+
+
+            elif name.startswith("teacher_") and "_must_be_fulfilled" in name:
+                parts = name.split("_")
+                t_id = int(parts[1])
+                slot = int(parts[4])
+                unschedulable_teachers_hard_time_dict[t_id] = slot
+
+            elif name.startswith("course_"):
+                parts = name.split("_")
+                c_id = int(parts[1])
+                unschedulable_courses.append(c_id)
+
+
+            elif name.startswith("course_") and "_needs_" in name:
+                allowed_part = name.split("_allowed_", 1)[1]
+                allowed_types = allowed_part.split("_")
+
+                if breaks_counters[3] == 0:
+                    print("unpredicted constraint break, room must assign iff facility matches")
+                    breaks_counters[3] += 1
+
+
+            elif name.startswith("there_is_at_least_1_slot_1_room_1_teacher_assigned_to_course_"):
+                # name = f"there_is_at_least_1_slot_1_room_1_teacher_assigned_to_course_{c_id}" - we take id after last _
+                c_id = int(name.rsplit("_", 1)[1])
+                unschedulable_courses.append(c_id)
+
+    return list(set(unschedulable_courses)), unschedulable_teachers_hard_time_dict, allowed_types  # убираем дубликаты
+
+
 def main():
     m = Model()
     random.seed(42)
@@ -18,9 +101,13 @@ def main():
     #rooms_objects: list[Room] = json_loaders_savers.load_rooms("rooms.json")
 
 
-    teachers_objects = json_generator.random_teachers(25)
-    courses_objects = json_generator.random_courses(70)
-    rooms_objects = json_generator.random_rooms(150)
+    teachers_objects = json_generator.random_teachers(20)
+    courses_objects = json_generator.random_courses(50)
+    rooms_objects = json_generator.random_rooms(200)
+
+    rooms_objects.append(Room(len(rooms_objects), Building.GSS, "Audimax", structures.RoomType.LECTURE,Faculty.BU, 150))
+
+
 
     print(len(teachers_objects), len(courses_objects), len(rooms_objects))
 
@@ -55,9 +142,9 @@ def main():
     ]
 
     # dict of weights by constraints names so the weights are easily changable
-    weights_by_name: dict[str, float] = {"TEACHER_SOFT_TIME": 0.1,
-                                         "ROOM_WASTE": 0.7,
-                                         "FACULTY_MISMATCH": 0.1}
+    weights_by_name: dict[str, float] = {"TEACHER_SOFT_TIME": 100,
+                                         "ROOM_WASTE": 70,
+                                         "FACULTY_MISMATCH": 50}
 
     '''================================== applying constrains ================================'''
 
@@ -75,9 +162,15 @@ def main():
 
     #dict of linear expressions for setObjective, we use it for agile weight setting
     soft_constrs_dict_name_grexpr: dict[str, gp.LinExpr] = {
-        "TEACHER_SOFT_TIME" : soft_constrains.add_teacher_soft_time_objective(m,x, teachers_id_list, teacher_dict_id_obj, courses_id_list, rooms_id_list, weights_by_name["TEACHER_SOFT_TIME"]),
-        "ROOM_WASTE" : soft_constrains.add_room_waste_objective(m, x, courses_id_list, rooms_id_list, course_dict_id_obj, room_dict_id_obj, slots, teachers_id_list, weights_by_name["ROOM_WASTE"]),
-        "FACULTY_MISMATCH" : soft_constrains.add_faculty_mismatch_objective(m,x,courses_id_list,rooms_id_list,course_dict_id_obj,room_dict_id_obj, slots, teachers_id_list, weights_by_name["FACULTY_MISMATCH"]),
+        "TEACHER_SOFT_TIME" : soft_constrains.add_teacher_soft_time_objective(
+            m,x, teachers_id_list, teacher_dict_id_obj, courses_id_list, rooms_id_list, weights_by_name["TEACHER_SOFT_TIME"]
+        ),
+        "ROOM_WASTE" : soft_constrains.add_room_waste_objective(
+            m, x, courses_id_list, rooms_id_list, course_dict_id_obj, room_dict_id_obj, slots, teachers_id_list, weights_by_name["ROOM_WASTE"]
+        ),
+        "FACULTY_MISMATCH" : soft_constrains.add_faculty_mismatch_objective(
+            m,x,courses_id_list,rooms_id_list,course_dict_id_obj,room_dict_id_obj, slots, teachers_id_list, weights_by_name["FACULTY_MISMATCH"]
+        )
     }
 
 
@@ -102,6 +195,14 @@ def main():
         print("Model infeasible, computing IIS...")
         m.computeIIS()
         m.write("model.ilp")
+        unscheduled_courses, unscheduled_teachers_slots, not_found_room_types = get_unschedulable_objects_from_iis(m)
+        print("Unscheduled courses: ", unscheduled_courses)
+        print("Unscheduled teachers slots: ", unscheduled_teachers_slots)
+        for course in unscheduled_courses:
+            print("Unscheduled course: ", course_dict_id_obj[course])
+        print("Not found room types: ", not_found_room_types)
+        for teacher_id in unscheduled_teachers_slots.keys():
+            print("Unfitted teacher", teacher_dict_id_obj[teacher_id])
 
     #print for tests
     if m.Status == GRB.OPTIMAL:
@@ -111,7 +212,7 @@ def main():
         json_loaders_savers.print_schedule_for_semester(
             m,
             x,
-            semester="CS4DMsem1",
+            semester="Study 2 Sem 1",
             slots=slots,
             teachers_id_list=teachers_id_list,
             courses_id_list=courses_id_list,

@@ -34,6 +34,14 @@ CAPACITY_WEIGHTS = {
     30 : 0.2,
     40 : 0.2,
     50 : 0.15,
+    100 : 0.15,
+}
+
+EXPECTED_NUM_STUDENTS = {
+    20 : 0.3,
+    30 : 0.2,
+    40 : 0.2,
+    50 : 0.15,
     100 : 0.1,
     150 : 0.05
 }
@@ -68,7 +76,7 @@ POOLS = {
     "facility_constr" : ["LECTURE", "LAB", "COMPUTER", "SEMINAR"],
     "times_per_week": [1,2],
     "address" : ["GSS", "M13", "C11", "C13", "M7", "B11", "HK7"],
-    "capacity" : [20, 30, 40, 60 , 100, 150]
+    "capacity" : [20, 30, 40, 60 , 100]
 }
 
 
@@ -125,7 +133,7 @@ def random_course(i: int) -> Course:
     return Course(
         course_id=i,
         faculty=random.choice(list(Faculty)),
-        expected_num_students=weighted_choice(CAPACITY_WEIGHTS),
+        expected_num_students=weighted_choice(EXPECTED_NUM_STUDENTS),
         semester=random.sample(
             POOLS["semester"],
             k=random.randint(1, 2)
