@@ -212,7 +212,7 @@ def main():
         json_loaders_savers.print_schedule_for_semester(
             m,
             x,
-            semester="Study 2 Sem 1",
+            semester="Study 3 Sem 1",
             slots=slots,
             teachers_id_list=teachers_id_list,
             courses_id_list=courses_id_list,
