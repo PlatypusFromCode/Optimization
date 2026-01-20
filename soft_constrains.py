@@ -1,6 +1,9 @@
 import gurobipy as gp
 from gurobipy import GRB
 
+from structures import Building
+
+
 #================HELPER=====================
 def build_teacher_teach_any(m, x, slots, teachers, courses, rooms, name="teach_any"):
     """
@@ -34,9 +37,21 @@ def build_course_occ(m, x, slots, teachers, courses, rooms, name="course_occ"):
 
 def build_courses_by_semester(semesters, courses_id_list, course_by_id):
     out = {}
+
     for sem in semesters:
-        out[sem] = [c_id for c_id in courses_id_list if sem in course_by_id[c_id].semester]
+        study, sem_num = sem
+
+        out[sem] = [
+            c_id
+            for c_id in courses_id_list
+            if any(
+                study == s and sem_num == n
+                for (s, n, _) in course_by_id[c_id].semester
+            )
+        ]
+
     return out
+
 
 #=========================================
 #=================SOFTS===================
@@ -150,7 +165,7 @@ def add_remote_building_lunch_objcetive(
     courses_id_list,
     rooms_id_list,
     room_by_id,
-    remote_buildings,
+    remote_buildings:list[Building],
     weight: float = 0.1
 ):
     expr = gp.LinExpr()
@@ -189,13 +204,7 @@ def add_semester_gap_objective(
 
     gap_expr = gp.LinExpr()
 
-    courses_by_sem = {
-        sem: [
-            c_id for c_id in courses_id_list
-            if sem in course_by_id[c_id].semester
-        ]
-        for sem in semesters
-    }
+    courses_by_sem = build_courses_by_semester(semesters, courses_id_list, course_by_id)
 
     for sem in semesters:
         sem_courses = courses_by_sem[sem]
@@ -227,19 +236,15 @@ def add_semester_gap_objective(
                         for r in rooms_id_list
                     ) #if there is a class at the last time slot
 
-
-                    middle = gp.quicksum(
-                        x[slots[m], t, c, r]
-                        for m in range(i + 1, j)
-                        for c in sem_courses
-                        for t in teachers_id_list
-                        for r in rooms_id_list
-                    ) #check if there is classes between the first and last
-
                     # if start is 1(true) and end is 1(true) and middle is 0(false) then pay a fine depending on the size of the window
                     # if exactly the situation start + end - middle - 1 = 1
-                    if (start + end - middle - 1) == 1:
-                        gap_expr += weight * k
+
+                    gap_expr += weight * k * (start + end)
+
+
+
+
+
 
     return gap_expr
 
@@ -372,6 +377,7 @@ def add_semester_max_classes_per_day_objective(
     days,
     teachers_id_list,
     rooms_id_list,
+    courses_id_list,
     max_classes_per_day: int = 3,
     weight: float = 1.0,
 ):
@@ -382,10 +388,7 @@ def add_semester_max_classes_per_day_objective(
     expr = gp.LinExpr()
 
     # Kurse je Semester sammeln (IDs)
-    courses_by_sem = {
-        sem: [c_id for c_id in course_by_id.keys() if sem in course_by_id[c_id].semester]
-        for sem in semesters
-    }
+    courses_by_sem = build_courses_by_semester(semesters, courses_id_list, course_by_id)
 
     for sem in semesters:
         sem_courses = courses_by_sem.get(sem, [])
@@ -425,6 +428,7 @@ def add_semester_avoid_early_slots_objective(
     early_slots: set[int],
     teachers_id_list,
     rooms_id_list,
+    courses_id_list,
     target_semesters: set = None,
     weight: float = 1.0,
 ):
@@ -438,10 +442,7 @@ def add_semester_avoid_early_slots_objective(
     if target_semesters is None:
         target_semesters = set(semesters)
 
-    courses_by_sem = {
-        sem: [c_id for c_id in course_by_id.keys() if sem in course_by_id[c_id].semester]
-        for sem in semesters
-    }
+    courses_by_sem = build_courses_by_semester(semesters, courses_id_list, course_by_id)
 
     for sem in target_semesters:
         sem_courses = courses_by_sem.get(sem, [])
@@ -752,3 +753,49 @@ def add_lecture_before_tutorial_objective(
                 expr += z
 
     return weight * expr
+
+
+
+def add_last_two_slots_objective(
+    x,
+    semesters,
+    courses_id_list,
+    course_by_id,
+    teachers_id_list,
+    rooms_id_list,
+    days,
+    weight: float = 1.0,
+):
+
+    obj = gp.LinExpr()
+
+    courses_by_sem = build_courses_by_semester(semesters,courses_id_list,course_by_id)
+
+    for sem in semesters:
+        sem_courses = courses_by_sem[sem]
+
+        for day in days:
+            slots = list(day)
+
+            if len(slots) < 2:
+                continue
+
+            pre_last = slots[-2]
+            last = slots[-1]
+
+
+            obj += weight * gp.quicksum(
+                x[pre_last, t, c, r]
+                for c in sem_courses
+                for t in teachers_id_list
+                for r in rooms_id_list
+            )
+
+            obj += 10 * weight * gp.quicksum(
+                x[last, t, c, r]
+                for c in sem_courses
+                for t in teachers_id_list
+                for r in rooms_id_list
+            )
+
+    return obj

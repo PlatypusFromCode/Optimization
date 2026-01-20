@@ -16,6 +16,11 @@ class RoomType(Enum):
     COMPUTER = 3
     SEMINAR = 4
 
+class CourseType(Enum):
+    PFLICHT = 1
+    WAHLPHLICHT = 2
+    WAHL = 3
+    UNABSICHTIGT = 4
 
 class Building(Enum):
     GSS = 1
@@ -41,7 +46,7 @@ class Course:
     course_id: int
     faculty: Faculty
     expected_num_students: int
-    semester: List[str]
+    semester: list[tuple[str, int, CourseType]] #[[str study program, int sem name 0 - 8, bool is_mand],[],[]....]
     course_name: str
     facility_constr: List[RoomType] #it is a course type as well lecture room for lectures
     soft_time_constr: List[int]

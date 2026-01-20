@@ -70,9 +70,17 @@ POOLS = {
     "hard_time_constr" : range(1,32),
     "soft_time_constr" : range(1,32),
     "expected_num_students" : range(MAX_ROOM_CAPACITY),
-    "semester" : ["Study 1 Sem 1", "Study 2 Sem 1", "Study 3 Sem 1",
-                  "Study 1 Sem 2", "Study 2 Sem 2", "Study 3 Sem 2",
-                  "Study 1 Sem 3", "Study 2 Sem 3", "Study 3 Sem 3"],
+    "semester": [
+        ("Study 1", 1),
+        ("Study 2", 1),
+        ("Study 3", 1),
+        ("Study 1", 2),
+        ("Study 2", 2),
+        ("Study 3", 2),
+        ("Study 1", 3),
+        ("Study 2", 3),
+        ("Study 3", 3),
+    ],
     "facility_constr" : ["LECTURE", "LAB", "COMPUTER", "SEMINAR"],
     "times_per_week": [1,2],
     "address" : ["GSS", "M13", "C11", "C13", "M7", "B11", "HK7"],
@@ -96,6 +104,22 @@ def serialize(obj):
     if isinstance(obj, decimal.Decimal):
         return float(obj)
     raise TypeError(f"Type {type(obj)} not serializable")
+
+def choose_room_type(expected_students: int) -> RoomType:
+    allowed = []
+
+    if expected_students <= 30:
+        allowed += [RoomType.LAB, RoomType.COMPUTER]
+
+    if expected_students <= 50:
+        allowed += [RoomType.SEMINAR]
+
+    allowed.append(RoomType.LECTURE)
+
+    weights = {t: ROOM_TYPE_WEIGHTS[t] for t in allowed}
+
+    return weighted_choice(weights)
+
 
 
 def random_teacher(i: int) -> Teacher:
@@ -130,17 +154,21 @@ def random_room(i: int) -> Room:
 
 
 def random_course(i: int) -> Course:
+    expected_students = weighted_choice(EXPECTED_NUM_STUDENTS)
+
     return Course(
         course_id=i,
         faculty=random.choice(list(Faculty)),
-        expected_num_students=weighted_choice(EXPECTED_NUM_STUDENTS),
-        semester=random.sample(
-            POOLS["semester"],
-            k=random.randint(1, 2)
-        ),
+        expected_num_students=expected_students,
+        semester=[
+            (study, sem_num, random.choice(list(CourseType)))
+            for (study, sem_num) in random.sample(
+                POOLS["semester"],
+                k=random.randint(1, 2)
+            )
+        ],
         course_name=random.choice(POOLS["course_name"]),
-        facility_constr=[weighted_choice(ROOM_TYPE_WEIGHTS
-        )],
+        facility_constr=[choose_room_type(expected_students)],
         soft_time_constr=random.sample(
             POOLS["soft_time_constr"],
             k=random.randint(1, 5)
@@ -151,6 +179,7 @@ def random_course(i: int) -> Course:
         ),
         times_per_week=random.choice(POOLS["times_per_week"])
     )
+
 
 
 def random_teachers(number_of_objects: int) -> List[Teacher]:

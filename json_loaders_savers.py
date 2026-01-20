@@ -63,7 +63,10 @@ json sample
     "course_id": 0,
     "faculty": "BU",
     "expected_num_students": 90,
-    "semester": ["BI1", "UI1"],
+    "semester": [
+    ["BI", 1, "PFLICHT"],
+    ["UI", 1, "WAHLPHLICHT"]
+    ],
     "course_name": "Baukonstruktionen",
     "facility_constr": ["LECTURE"]
   }
@@ -153,7 +156,7 @@ json sample
 def print_schedule_for_semester(
     m,
     x,
-    semester: str,
+    semester: tuple[str, int],
     slots,
     teachers_id_list,
     courses_id_list,
@@ -161,19 +164,25 @@ def print_schedule_for_semester(
     teacher_by_id,
     course_by_id,
     room_by_id
-):
+    ):
     if m.Status != GRB.OPTIMAL:
         print(f"Model status is not OPTIMAL: {m.Status}")
         return
 
-    print(f"\nSemester: {semester}")
+    study, sem_num = semester[:2]
+
+    print(f"\nSemester: {study} Sem {sem_num}")
     print("-" * 40)
 
     found = False
 
     for slot in slots:
         for c_id in courses_id_list:
-            if semester not in course_by_id[c_id].semester:
+
+            if not any(
+                    study == s and sem_num == n
+                    for (s, n, _) in course_by_id[c_id].semester
+            ):
                 continue
 
             for t_id in teachers_id_list:

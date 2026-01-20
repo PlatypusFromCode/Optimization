@@ -37,6 +37,7 @@ def get_unschedulable_objects_from_iis(m) -> tuple[list[int], dict[int, int], li
     unschedulable_courses = []
     unschedulable_teachers_hard_time_dict = {}
     allowed_types = []
+    counter = [0,0,0,0,0,0,0,0]
 
     m.computeIIS()
 
@@ -51,17 +52,29 @@ def get_unschedulable_objects_from_iis(m) -> tuple[list[int], dict[int, int], li
             t_id = int(parts[1])
             slot = int(parts[4])
             unschedulable_teachers_hard_time_dict[t_id] = slot
+            if counter[0] == 0:
+                print(f"{name}_cannot be fullfilled")
+                counter[0] = 1
 
         elif name.startswith("there_is_at_least_1_slot_1_room_1_teacher_assigned_to_course_"):
             c_id = int(name.rsplit("_", 1)[1])
             unschedulable_courses.append(c_id)
+            if counter[1] == 0:
+                print(f"{name}_cannot be fullfilled")
+                counter[1] = 1
 
         elif name.startswith("course_") and "_needs_" in name and "_allowed_" in name:
             allowed_part = name.split("_allowed_", 1)[1]
             allowed_types = allowed_part.split("_")
+            if counter[2] == 0:
+                print(f"{name}_cannot be fullfilled")
+                counter[2] = 1
 
         elif name.startswith("course_"):
             # fallback: versucht Kurs-ID zu lesen
+            if counter[3] == 0:
+                print(f"{name}_cannot be fullfilled")
+                counter[3] = 1
             parts = name.split("_")
             try:
                 c_id = int(parts[1])
@@ -81,18 +94,21 @@ def build_courses_by_semester(courses_objects):
             courses_by_sem[sem].append(c.course_id)
     return dict(courses_by_sem)
 
-
-def pick_existing_semester(courses_by_sem, preferred: str | None):
-    if preferred and preferred in courses_by_sem and len(courses_by_sem[preferred]) > 0:
+def pick_existing_semester(
+    courses_by_sem: dict[tuple[str, int], list],
+    preferred: tuple[str, int] | None,
+):
+    #if preferred sem exists and not empty
+    if preferred and preferred in courses_by_sem and courses_by_sem[preferred]:
         return preferred
-
-    # Nimm erstes Semester mit Kursen
+    #first sem with courses
     for sem, ids in courses_by_sem.items():
         if ids:
             return sem
+    #fallback
+    return next(iter(courses_by_sem.keys()), preferred)
 
-    # Notfalls irgendeinen Key
-    return next(iter(courses_by_sem.keys()), preferred or "UNKNOWN")
+
 
 
 def print_objective_breakdown(soft_exprs: dict[str, gp.LinExpr], obj_val: float):
@@ -126,13 +142,17 @@ def count_assignments(x, slots, teachers_id_list, courses_id_list, rooms_id_list
 
 def main():
     m = Model()
-    random.seed(42)
+    random.seed(41)
 
     # ------------------ Data generation ------------------
-    teachers_objects = json_generator.random_teachers(20)
-    courses_objects = json_generator.random_courses(50)
-    rooms_objects = json_generator.random_rooms(200)
+    teachers_objects = json_generator.random_teachers(10)
+    courses_objects = json_generator.random_courses(30)
+    rooms_objects = json_generator.random_rooms(8)
     rooms_objects.append(Room(len(rooms_objects), Building.GSS, "Audimax", structures.RoomType.LECTURE, Faculty.BU, 150))
+    rooms_objects.append(Room(len(rooms_objects) + 1 , Building.B11, "Labclass", structures.RoomType.LAB, Faculty.M, 30))
+    rooms_objects.append(Room(len(rooms_objects) + 2, Building.B11, "Compclass", structures.RoomType.COMPUTER, Faculty.M, 30))
+
+
 
     teachers_id_list = [t.teacher_id for t in teachers_objects]
     courses_id_list = [c.course_id for c in courses_objects]
@@ -144,7 +164,11 @@ def main():
     course_by_id = {c.course_id: c for c in courses_objects}
     room_by_id = {r.room_id: r for r in rooms_objects}
 
-    semesters = {sem for c in courses_objects for sem in c.semester}
+    semesters = {
+        (study, sem_num)
+        for c in courses_objects
+        for (study, sem_num, _) in c.semester
+    }
 
     days = [
         range(1, 8),
@@ -153,6 +177,8 @@ def main():
         range(18, 25),
         range(25, 32),
     ]
+
+    remote_buildings=[Building.C11,Building.C13]
 
     courses_by_sem = build_courses_by_semester(courses_objects)
 
@@ -168,9 +194,11 @@ def main():
     # ------------------ Weights + toggles ------------------
     # Basis-Softs
     weights_by_name: dict[str, float] = {
-        "TEACHER_SOFT_TIME": 100,
-        "ROOM_WASTE": 70,
-        "FACULTY_MISMATCH": 50,
+        "TEACHER_SOFT_TIME": 50,
+        "ROOM_WASTE": 10,
+        "FACULTY_MISMATCH": 500,
+        "REMOTE_LUNCH": 50,
+        "GAP_AVOID" : 50,
 
         # Neue Softs (Beispielgewichte – müssen kalibriert werden)
         "T_MAX_CONSEC": 20,
@@ -184,12 +212,15 @@ def main():
         "T_B2B_BUILDING_CHANGE": 1.0,
         # optional (falls du Paare definierst):
         "LECT_BEFORE_TUT": 5,
+        "TWO_LAST_SLOTS" : 50
     }
 
     ENABLE_SOFTS = {
         "TEACHER_SOFT_TIME": True,
         "ROOM_WASTE": True,
         "FACULTY_MISMATCH": True,
+        "REMOTE_LUNCH": True,
+        "GAP_AVOID": False,
 
         "T_MAX_CONSEC": True,
         "T_MIN_TEACH_DAYS": True,
@@ -202,6 +233,7 @@ def main():
         "T_B2B_BUILDING_CHANGE": True,
 
         "LECT_BEFORE_TUT": False,            # braucht Paare
+        "TWO_LAST_SLOTS" : True
     }
 
     # Definiere, was "early" ist: hier z.B. erster Slot pro Tag
@@ -243,6 +275,16 @@ def main():
             m, x, courses_id_list, rooms_id_list, course_by_id, room_by_id, slots, teachers_id_list, weights_by_name["FACULTY_MISMATCH"]
         )
 
+    if ENABLE_SOFTS["REMOTE_LUNCH"]:
+        soft_exprs["REMOTE_LUNCH"] = soft_constrains.add_remote_building_lunch_objcetive(
+            m,x,slots,teachers_id_list, courses_id_list, rooms_id_list, room_by_id, remote_buildings, weight= weights_by_name["REMOTE_LUNCH"]
+        )
+
+    if ENABLE_SOFTS["GAP_AVOID"]:
+        soft_exprs["GAP_AVOID"] = soft_constrains.add_semester_gap_objective(
+            x, semesters, courses_id_list, course_by_id, teachers_id_list, rooms_id_list, days, weight=weights_by_name["GAP_AVOID"]
+        )
+
     # Neue Softs
     if ENABLE_SOFTS["T_MAX_CONSEC"]:
         soft_exprs["T_MAX_CONSEC"] = soft_constrains.add_teacher_max_consecutive_objective(
@@ -258,13 +300,13 @@ def main():
 
     if ENABLE_SOFTS["SEM_MAX_PER_DAY"]:
         soft_exprs["SEM_MAX_PER_DAY"] = soft_constrains.add_semester_max_classes_per_day_objective(
-            m, x, semesters, course_by_id, slots, days, teachers_id_list, rooms_id_list,
+            m, x, semesters, course_by_id, slots, days, teachers_id_list, rooms_id_list, courses_id_list,
             max_classes_per_day=3, weight=weights_by_name["SEM_MAX_PER_DAY"]
         )
 
     if ENABLE_SOFTS["SEM_AVOID_EARLY"]:
         soft_exprs["SEM_AVOID_EARLY"] = soft_constrains.add_semester_avoid_early_slots_objective(
-            m, x, semesters, course_by_id, early_slots, teachers_id_list, rooms_id_list,
+            m, x, semesters, course_by_id, early_slots, teachers_id_list, rooms_id_list, courses_id_list,
             target_semesters=target_semesters_early, weight=weights_by_name["SEM_AVOID_EARLY"]
         )
 
@@ -299,6 +341,9 @@ def main():
             weight=weights_by_name["LECT_BEFORE_TUT"]
         )
 
+    if ENABLE_SOFTS["TWO_LAST_SLOTS"]:
+        soft_exprs["TWO_LAST_SLOTS"] = soft_constrains.add_last_two_slots_objective(x,semesters, courses_id_list, course_by_id, teachers_id_list, rooms_id_list, days)
+
     # ------------------ Objective ------------------
     if len(soft_exprs) == 0:
         m.setObjective(0.0, GRB.MINIMIZE)
@@ -317,6 +362,7 @@ def main():
         print("Unscheduled courses:", unscheduled_courses)
         print("Unscheduled teachers slots:", unscheduled_teachers_slots)
         print("Not found room types:", not_found_room_types)
+        print("uns. course:", course_by_id[unscheduled_courses[0]])
         return
 
     if m.Status in (GRB.OPTIMAL, GRB.SUBOPTIMAL) and m.SolCount > 0:
@@ -326,10 +372,17 @@ def main():
         print("Total scheduled assignments:", count_assignments(x, slots, teachers_id_list, courses_id_list, rooms_id_list))
         print_objective_breakdown(soft_exprs, m.ObjVal)
 
-        preferred_sem = "Study 3 Sem 1"
+        preferred_sem = ("Study 3", 1)
+
         semester_to_print = pick_existing_semester(courses_by_sem, preferred_sem)
+
         if semester_to_print != preferred_sem:
-            print(f"NOTE: preferred semester '{preferred_sem}' not found/empty. Printing '{semester_to_print}' instead.")
+            print(
+                f"NOTE: preferred semester {preferred_sem} "
+                f"not found/empty. Printing {semester_to_print} instead."
+            )
+
+        courses_in_preferred = courses_by_sem.get(semester_to_print, [])
 
         json_loaders_savers.print_schedule_for_semester(
             m,
