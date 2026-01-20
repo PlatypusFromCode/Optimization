@@ -1,50 +1,114 @@
 [
   {
-    "room_id": 201,
-    "address": "GSS",
-    "room_name": "GSS-H1",
-    "type": "LECTURE",
-    "faculty": "M",
-    "capacity": 120
-  },
-  {
-    "room_id": 202,
-    "address": "GSS",
-    "room_name": "GSS-S1",
+    "room_id": 1,
+    "name": "Seminarraum A",
+    "address": "Bauhausstraße 11",
     "type": "SEMINAR",
     "faculty": "M",
     "capacity": 40
   },
   {
-    "room_id": 203,
-    "address": "M13",
-    "room_name": "M13-LAB1",
-    "type": "LAB",
-    "faculty": "AU",
-    "capacity": 30
-  },
-  {
-    "room_id": 204,
-    "address": "C11",
-    "room_name": "C11-PC1",
-    "type": "COMPUTER",
-    "faculty": "KG",
+    "room_id": 2,
+    "name": "Seminarraum H",
+    "address": "Bauhausstraße 11",
+    "type": "SEMINAR",
+    "faculty": "M",
     "capacity": 50
   },
   {
-    "room_id": 205,
-    "address": "GSS",
-    "room_name": "GSS-H2",
+    "room_id": 3,
+    "name": "Seminarraum L",
+    "address": "Bauhausstraße 11",
+    "type": "SEMINAR",
+    "faculty": "M",
+    "capacity": 50
+  },
+  {
+    "room_id": 4,
+    "name": "Pool G",
+    "address": "Bauhausstraße 11",
+    "type": "COMPUTER",
+    "faculty": "M",
+    "capacity": 25
+  },
+  {
+    "room_id": 5,
+    "name": "Hörsaal (IT-AP)",
+    "address": "Karl-Haußknecht-Straße 7",
     "type": "LECTURE",
     "faculty": "M",
+    "capacity": 120
+  },
+  {
+    "room_id": 6,
+    "name": "Seminarraum (IT-AP) 001",
+    "address": "Karl-Haußknecht-Straße 7",
+    "type": "SEMINAR",
+    "faculty": "M",
+    "capacity": 40
+  },
+  {
+    "room_id": 7,
+    "name": "Maurice-Halbwachs-Auditorium",
+    "address": "Steubenstraße 6",
+    "type": "LECTURE",
+    "faculty": "M",
+    "capacity": 200
+  },
+  {
+    "room_id": 8,
+    "name": "Seminarraum 106",
+    "address": "Marienstraße 13",
+    "type": "SEMINAR",
+    "faculty": "B",
+    "capacity": 30
+  },
+  {
+    "room_id": 9,
+    "name": "Seminarraum 104",
+    "address": "Marienstraße 13",
+    "type": "SEMINAR",
+    "faculty": "B",
+    "capacity": 30
+  },
+  {
+    "room_id": 10,
+    "name": "Seminarraum 210",
+    "address": "Marienstraße 13",
+    "type": "SEMINAR",
+    "faculty": "B",
+    "capacity": 30
+  },
+  {
+    "room_id": 11,
+    "name": "PC-Pool Luna-blue",
+    "address": "Marienstraße 7B",
+    "type": "COMPUTER",
+    "faculty": "B",
+    "capacity": 20
+  },
+  {
+    "room_id": 12,
+    "name": "Hörsaal C",
+    "address": "Marienstraße 13",
+    "type": "LECTURE",
+    "faculty": "B",
     "capacity": 80
   },
   {
-    "room_id": 206,
-    "address": "M13",
-    "room_name": "M13-S2",
-    "type": "SEMINAR",
-    "faculty": "AU",
+    "room_id": 13,
+    "name": "Linux-Pool",
+    "address": "Bauhausstraße 9a",
+    "type": "COMPUTER",
+    "faculty": "M",
     "capacity": 25
+  },
+  {
+    "room_id": 14,
+    "name": "Digital Bauhaus Lab (DBL)",
+    "address": "Bauhausstraße 9a",
+    "type": "LAB",
+    "faculty": "M",
+    "capacity": 20
   }
 ]

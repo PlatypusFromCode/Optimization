@@ -137,12 +137,97 @@ def count_assignments(x, slots, teachers_id_list, courses_id_list, rooms_id_list
         if x[s, t, c, r].X > 0.5
     )
 
+def audit_course_assignments(
+    x,
+    slots,
+    teachers_id_list,
+    courses_id_list,
+    rooms_id_list,
+    course_by_id=None,
+    semesters=None,
+    max_list: int = 15,
+):
+    """
+    Prüft nach dem Solve:
+      sum_{s,t,r} x[s,t,c,r] für jeden Kurs c.
+    Report:
+      - wie viele Kurse 0x / 1x / >1x geplant wurden
+      - Beispiele für 0x und >1x
+      - optional: Semester-Statistik (wenn course_by_id + semesters gegeben)
+    """
+    zero = []
+    multi = []
+    exactly_one = 0
+
+    # Optional: Semester-Zählung
+    per_sem_total = defaultdict(int)
+    per_sem_scheduled = defaultdict(int)
+
+    # Precompute: Für Geschwindigkeit
+    slots_list = list(slots)
+    teachers_list = list(teachers_id_list)
+    rooms_list = list(rooms_id_list)
+
+    for c in courses_id_list:
+        assigned = 0
+
+        # Summe über alle (s,t,r)
+        for s in slots_list:
+            for t in teachers_list:
+                for r in rooms_list:
+                    if x[s, t, c, r].X > 0.5:
+                        assigned += 1
+
+        if assigned == 0:
+            zero.append(c)
+        elif assigned == 1:
+            exactly_one += 1
+        else:
+            multi.append((c, assigned))
+
+        # Semester-Statistik (optional)
+        if course_by_id is not None:
+            for (study, sem_num, _) in getattr(course_by_id[c], "semester", []):
+                sem_key = (study, sem_num)
+                per_sem_total[sem_key] += 1
+                if assigned >= 1:
+                    per_sem_scheduled[sem_key] += 1
+
+    print("\n================ COURSE ASSIGNMENT AUDIT ================")
+    print(f"Total courses: {len(courses_id_list)}")
+    print(f"Scheduled exactly once: {exactly_one}")
+    print(f"Unscheduled (0x): {len(zero)}")
+    print(f"Scheduled multiple times (>1x): {len(multi)}")
+
+    if zero:
+        print(f"\nExamples UNSCHEDULED courses (up to {max_list}): {zero[:max_list]}")
+        if course_by_id is not None:
+            for c in zero[:min(max_list, len(zero))]:
+                print("  ", course_by_id[c])
+
+    if multi:
+        print(f"\nExamples MULTI-SCHEDULED courses (up to {max_list}): {multi[:max_list]}")
+        if course_by_id is not None:
+            for c, k in multi[:min(max_list, len(multi))]:
+                print(f"  course_id={c}, assigned={k} -> {course_by_id[c]}")
+
+    # Semester-Report (optional)
+    if course_by_id is not None and semesters is not None:
+        print("\nSemester coverage (scheduled>=1):")
+        for sem in sorted(list(semesters), key=lambda x: str(x)):
+            tot = per_sem_total.get(sem, 0)
+            sch = per_sem_scheduled.get(sem, 0)
+            print(f"  {str(sem):15s}: {sch}/{tot} scheduled")
+
+
+    print("=========================================================\n")
+
 
 # ============================ Main ============================
 
 def main():
     m = Model()
-    random.seed(41)
+    random.seed(42)
 
     # ------------------ Data generation ------------------
     teachers_objects = json_generator.random_teachers(10)
@@ -374,30 +459,19 @@ def main():
 
         preferred_sem = ("Study 3", 1)
 
-        semester_to_print = pick_existing_semester(courses_by_sem, preferred_sem)
-
-        if semester_to_print != preferred_sem:
-            print(
-                f"NOTE: preferred semester {preferred_sem} "
-                f"not found/empty. Printing {semester_to_print} instead."
-            )
-
-        courses_in_preferred = courses_by_sem.get(semester_to_print, [])
-
-        json_loaders_savers.print_schedule_for_semester(
-            m,
-            x,
-            semester=semester_to_print,
+        # Prüfe, ob wirklich jeder Kurs genau einmal geplant wurde
+        audit_course_assignments(
+            x=x,
             slots=slots,
             teachers_id_list=teachers_id_list,
             courses_id_list=courses_id_list,
             rooms_id_list=rooms_id_list,
-            teacher_by_id=teacher_by_id,
             course_by_id=course_by_id,
-            room_by_id=room_by_id
+            semesters=semesters,
+            max_list=10,
         )
-    else:
-        print(f"\nNO SOLUTION. Status = {m.Status}")
+
+
 
 
 if __name__ == "__main__":

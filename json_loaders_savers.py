@@ -1,200 +1,171 @@
-from structures import Teacher, Course, Room, Faculty, RoomType, Building
 import json
-from gurobipy import GRB
-from decimal import Decimal
+import inspect
+from typing import Any
 
+import structures
+from structures import Teacher, Course, Room, Faculty
+
+
+# -------------------- helpers --------------------
+
+def _read_json_list(path: str, root_key: str | None = None) -> list[dict]:
+    with open(path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    if root_key and isinstance(data, dict):
+        data = data.get(root_key)
+
+    if not isinstance(data, list):
+        raise ValueError(f"{path}: expected a JSON list, got {type(data)}")
+    return data
+
+
+def _enum_from_string(enum_cls, value: Any):
+    """
+    Try to map string codes like 'M' or 'SEMINAR' to Enum members.
+    If mapping fails, return the raw value (string).
+    """
+    if value is None:
+        return None
+
+    # already enum
+    if hasattr(value, "name") and hasattr(value, "value"):
+        return value
+
+    if isinstance(value, str):
+        key = value.strip()
+        # try exact attribute lookup: Faculty.M / RoomType.SEMINAR ...
+        if hasattr(enum_cls, key):
+            return getattr(enum_cls, key)
+        # try upper-case
+        if hasattr(enum_cls, key.upper()):
+            return getattr(enum_cls, key.upper())
+        # try enum_cls['M']
+        try:
+            return enum_cls[key]
+        except Exception:
+            pass
+        try:
+            return enum_cls[key.upper()]
+        except Exception:
+            pass
+
+    # fallback
+    return value
+
+
+def _construct_flex(cls, payload: dict):
+    """
+    Construct cls(**kwargs) but only passes parameters that cls.__init__ accepts.
+    Also handles common renames (course_names -> course_name).
+    """
+    sig = inspect.signature(cls.__init__)
+    accepted = {p.name for p in sig.parameters.values() if p.name != "self"}
+
+    kwargs = {}
+
+    # Common field mappings
+    # Teacher JSON -> Teacher class
+    if cls is Teacher:
+        # mandatory-ish
+        kwargs["teacher_id"] = payload.get("teacher_id")
+        kwargs["teacher_name"] = payload.get("teacher_name", payload.get("name"))
+        kwargs["faculty"] = _enum_from_string(Faculty, payload.get("faculty"))
+
+        # time constraints
+        kwargs["hard_time_constr"] = payload.get("hard_time_constr", [])
+        kwargs["soft_time_constr"] = payload.get("soft_time_constr", [])
+
+        # courses taught: JSON uses course_names (list)
+        cn = payload.get("course_names", payload.get("course_name"))
+        if isinstance(cn, list):
+            # some Teacher classes expect course_name (singular) or course_names (plural)
+            if "course_names" in accepted:
+                kwargs["course_names"] = cn
+            elif "course_name" in accepted:
+                kwargs["course_name"] = ", ".join(cn)
+        elif isinstance(cn, str):
+            if "course_names" in accepted:
+                kwargs["course_names"] = [cn]
+            elif "course_name" in accepted:
+                kwargs["course_name"] = cn
+
+    # Room JSON -> Room class
+    elif cls is Room:
+        kwargs["room_id"] = payload.get("room_id")
+        # your Room constructor earlier: Room(id, Building/addr, name, RoomType, Faculty, capacity)
+        # We keep address as string (works fine for your objectives that compare address)
+        kwargs["address"] = payload.get("address")
+        kwargs["name"] = payload.get("name")
+        # type is a RoomType enum in your earlier code
+        kwargs["type"] = _enum_from_string(structures.RoomType, payload.get("type"))
+        kwargs["faculty"] = _enum_from_string(Faculty, payload.get("faculty"))
+        kwargs["capacity"] = payload.get("capacity", 0)
+
+        # Some Room classes might use 'room_type' instead of 'type'
+        if "room_type" in accepted and "type" in kwargs:
+            kwargs["room_type"] = kwargs.pop("type")
+
+    # Course JSON -> Course class
+    elif cls is Course:
+        kwargs["course_id"] = payload.get("course_id")
+        kwargs["course_name"] = payload.get("course_name")
+        # course_type might be an enum in your project; if yes, map here similarly
+        if hasattr(structures, "CourseType"):
+            kwargs["course_type"] = _enum_from_string(structures.CourseType, payload.get("course_type"))
+        else:
+            kwargs["course_type"] = payload.get("course_type")
+
+        kwargs["faculty"] = _enum_from_string(Faculty, payload.get("faculty"))
+        kwargs["semester"] = payload.get("semester", [])
+        kwargs["duration_minutes"] = payload.get("duration_minutes", 90)
+        kwargs["facility_constr"] = payload.get("facility_constr", [])
+        kwargs["teacher_ids"] = payload.get("teacher_ids", [])
+        kwargs["room_name"] = payload.get("room_name")
+        kwargs["expected_num_students"] = payload.get("expected_num_students", 0)
+        kwargs["times_per_week"] = payload.get("times_per_week", 1.0)
+
+    else:
+        # generic: pass through only accepted keys
+        for k, v in payload.items():
+            if k in accepted:
+                kwargs[k] = v
+
+    # filter to accepted
+    kwargs = {k: v for k, v in kwargs.items() if k in accepted}
+
+    return cls(**kwargs)
+
+
+# -------------------- loaders --------------------
 
 def load_teachers(path: str) -> list[Teacher]:
-    with open(path, "r", encoding="utf-8") as file:
-        data = json.load(file)
+    data = _read_json_list(path)
+    out = []
+    for item in data:
+        out.append(_construct_flex(Teacher, item))
+    return out
 
-    return [
-        Teacher(
-            teacher_id=item["teacher_id"],
-            teacher_name=item["teacher_name"],
-            faculty=Faculty[item["faculty"]],
-            course_name=item["course_name"],
-            hard_time_constr=item["hard_time_constr"],
-            soft_time_constr=item["soft_time_constr"]
-        )
-        for item in data
-    ]
 
-'''
-json sample
-[
-  {
-    "teacher_id": 0,
-    "teacher_name": "Mueller",
-    "faculty": "BU",
-    "course_name": ["Baukonstruktionen"],
-    "hard_time_constr": [1, 2],
-    "soft_time_constr": [5, 6]
-  }
-]
-
-'''
-
+def load_rooms(path: str) -> list[Room]:
+    data = _read_json_list(path)
+    out = []
+    for item in data:
+        out.append(_construct_flex(Room, item))
+    return out
 
 
 def load_courses(path: str) -> list[Course]:
-    with open(path, "r", encoding="utf-8") as file:
-        data = json.load(file)
-
-    return [
-        Course(
-            course_id=item["course_id"],
-            faculty=Faculty[item["faculty"]],
-            expected_num_students=item["expected_num_students"],
-            semester=item["semester"],
-            course_name=item["course_name"],
-            facility_constr=[RoomType[t] for t in item["facility_constr"]],
-            hard_time_constr= item["hard_time_constr"],
-            soft_time_constr=item["soft_time_constr"],
-            times_per_week = Decimal(item["times_per_week"])
-
-        )
-        for item in data
-    ]
-'''
-json sample
-[
-  {
-    "course_id": 0,
-    "faculty": "BU",
-    "expected_num_students": 90,
-    "semester": [
-    ["BI", 1, "PFLICHT"],
-    ["UI", 1, "WAHLPHLICHT"]
-    ],
-    "course_name": "Baukonstruktionen",
-    "facility_constr": ["LECTURE"]
-  }
-]
-
-'''
-
-def load_rooms(path: str) -> list[Room]:
-    with open(path, "r", encoding="utf-8") as file:
-        data = json.load(file)
-
-    return [
-        Room(
-            room_id=item["room_id"],
-            address=Building[item["address"]],
-            room_name=item["room_name"],
-            type=RoomType[item["type"]],
-            faculty=Faculty[item["faculty"]],
-            capacity=item["capacity"]
-        )
-        for item in data
-    ]
-
-'''
-json sample
-[
-  {
-    "room_id": 0,
-    "address": "M13",
-    "room_name": "201",
-    "type": "LECTURE",
-    "faculty": "BU",
-    "capacity": 120
-  }
-]
-'''
+    data = _read_json_list(path)
+    out = []
+    for item in data:
+        out.append(_construct_flex(Course, item))
+    return out
 
 
-def save_schedule_to_json(
-    m,
-    x,
-    slots,
-    teachers_id_list,
-    courses_id_list,
-    rooms_id_list,
-    path: str = "schedule_solution.json"
-):
-    if m.Status != GRB.OPTIMAL:
-        raise RuntimeError(f"Model status is not OPTIMAL: {m.Status}")
-
-    solution = []
-
-    for slot in slots:
-        for t_id in teachers_id_list:
-            for c_id in courses_id_list:
-                for r_id in rooms_id_list:
-                    if x[slot, t_id, c_id, r_id].X == 1:
-                        solution.append({
-                            "slot": slot,
-                            "teacher_id": t_id,
-                            "course_id": c_id,
-                            "room_id": r_id
-                        })
-
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(solution, f, ensure_ascii=False, indent=2)
-
-'''
-json sample
-[
-  {
-    "slot": 3,
-    "teacher_id": 5,
-    "course_id": 12,
-    "room_id": 7
-  },
-  {
-    "slot": 4,
-    "teacher_id": 2,
-    "course_id": 9,
-    "room_id": 1
-  }
-]
-'''
-
-
-def print_schedule_for_semester(
-    m,
-    x,
-    semester: tuple[str, int],
-    slots,
-    teachers_id_list,
-    courses_id_list,
-    rooms_id_list,
-    teacher_by_id,
-    course_by_id,
-    room_by_id
-    ):
-    if m.Status != GRB.OPTIMAL:
-        print(f"Model status is not OPTIMAL: {m.Status}")
-        return
-
-    study, sem_num = semester[:2]
-
-    print(f"\nSemester: {study} Sem {sem_num}")
-    print("-" * 40)
-
-    found = False
-
-    for slot in slots:
-        for c_id in courses_id_list:
-
-            if not any(
-                    study == s and sem_num == n
-                    for (s, n, _) in course_by_id[c_id].semester
-            ):
-                continue
-
-            for t_id in teachers_id_list:
-                for r_id in rooms_id_list:
-                    if x[slot, t_id, c_id, r_id].X == 1:
-                        found = True
-                        print(
-                            f"Slot {slot} | "
-                            f"Course {course_by_id[c_id].course_name} | "
-                            f"Teacher {teacher_by_id[t_id].teacher_name} | "
-                            f"Room {room_by_id[r_id].room_name}"
-                        )
-
-    if not found:
-        print("No courses scheduled for this semester.")
+def load_timeslots(path: str) -> list[dict]:
+    """
+    Returns raw timeslot dicts as in your JSON.
+    Example item: {"timeslot_id": 1, "day": "Montag", "start": "07:30", "end": "09:00"}
+    """
+    return _read_json_list(path)
