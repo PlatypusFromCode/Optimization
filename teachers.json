@@ -1,41 +1,265 @@
 [
   {
     "teacher_id": 1,
-    "teacher_name": "Teacher 1",
+    "teacher_name": "Rodehorst",
     "faculty": "M",
-    "course_name": ["Course 1", "Course 2"],
-    "hard_time_constr": [],
-    "soft_time_constr": []
+    "course_names": ["Photogrammetric Computer Vision", "Parallele und verteilte Systeme", "Deep Learning for Computer Vision"],
+    "hard_time_constr": [2, 38],
+    "soft_time_constr": [9]
   },
   {
     "teacher_id": 2,
-    "teacher_name": "Teacher 2",
-    "faculty": "AU",
-    "course_name": ["Course 3"],
-    "hard_time_constr": [1],
-    "soft_time_constr": [4]
+    "teacher_name": "Kaisheva",
+    "faculty": "M",
+    "course_names": ["Photogrammetric Computer Vision", "Parallele und verteilte Systeme"],
+    "hard_time_constr": [19],
+    "soft_time_constr": [39]
   },
   {
     "teacher_id": 3,
-    "teacher_name": "Teacher 3",
-    "faculty": "KG",
-    "course_name": ["Course 4"],
-    "hard_time_constr": [],
-    "soft_time_constr": [2]
+    "teacher_name": "Bock",
+    "faculty": "M",
+    "course_names": ["Numerik"],
+    "hard_time_constr": [3],
+    "soft_time_constr": [22]
   },
   {
     "teacher_id": 4,
-    "teacher_name": "Teacher 4",
+    "teacher_name": "Stein",
     "faculty": "M",
-    "course_name": ["Course 5"],
-    "hard_time_constr": [0],
-    "soft_time_constr": []
+    "course_names": ["Datenbanken", "Introduction to Machine Learning"],
+    "hard_time_constr": [14, 27],
+    "soft_time_constr": [35]
   },
   {
     "teacher_id": 5,
-    "teacher_name": "Teacher 5",
-    "faculty": "AU",
-    "course_name": ["Course 6"],
+    "teacher_name": "Gohsen",
+    "faculty": "M",
+    "course_names": ["Datenbanken"],
+    "hard_time_constr": [],
+    "soft_time_constr": [1]
+  },
+  {
+    "teacher_id": 6,
+    "teacher_name": "Heinrich",
+    "faculty": "M",
+    "course_names": ["Datenbanken"],
+    "hard_time_constr": [],
+    "soft_time_constr": [16]
+  },
+  {
+    "teacher_id": 7,
+    "teacher_name": "Jakoby",
+    "faculty": "M",
+    "course_names": ["Formale Sprachen", "Praktische und Technische Informatik", "Online Computation", "Digital Watermarking"],
+    "hard_time_constr": [21],
+    "soft_time_constr": [25]
+  },
+  {
+    "teacher_id": 8,
+    "teacher_name": "Ringert",
+    "faculty": "M",
+    "course_names": ["Einführung in die Programmierung", "Software Engineering II", "Formal Methods for Software Engineering"],
+    "hard_time_constr": [11],
+    "soft_time_constr": [8]
+  },
+  {
+    "teacher_id": 9,
+    "teacher_name": "Burse",
+    "faculty": "M",
+    "course_names": ["Einführung in die Programmierung"],
+    "hard_time_constr": [],
+    "soft_time_constr": [33]
+  },
+  {
+    "teacher_id": 10,
+    "teacher_name": "Rüffer",
+    "faculty": "M",
+    "course_names": ["Mathematik 1 - Lineare Algebra", "Lineare Algebra"],
+    "hard_time_constr": [22],
+    "soft_time_constr": [15]
+  },
+  {
+    "teacher_id": 11,
+    "teacher_name": "Schmidt",
+    "faculty": "M",
+    "course_names": ["Lineare Algebra"],
+    "hard_time_constr": [],
+    "soft_time_constr": [3]
+  },
+  {
+    "teacher_id": 12,
+    "teacher_name": "Hornecker",
+    "faculty": "M",
+    "course_names": ["Modellierung von Informationssystemen"],
+    "hard_time_constr": [30],
+    "soft_time_constr": [19]
+  },
+  {
+    "teacher_id": 13,
+    "teacher_name": "Waldschütz",
+    "faculty": "M",
+    "course_names": ["Modellierung von Informationssystemen"],
+    "hard_time_constr": [],
+    "soft_time_constr": [37]
+  },
+  {
+    "teacher_id": 14,
+    "teacher_name": "Jakesch",
+    "faculty": "M",
+    "course_names": ["Software Grundlagen der Kognition", "Methods of Social Data Analysis"],
+    "hard_time_constr": [6],
+    "soft_time_constr": [11]
+  },
+  {
+    "teacher_id": 15,
+    "teacher_name": "Navajas Fernández",
+    "faculty": "M",
+    "course_names": ["Software Grundlagen der Kognition", "Methods of Social Data Analysis"],
+    "hard_time_constr": [],
+    "soft_time_constr": [31]
+  },
+  {
+    "teacher_id": 16,
+    "teacher_name": "Spang",
+    "faculty": "M",
+    "course_names": ["Software Grundlagen der Kognition"],
+    "hard_time_constr": [],
+    "soft_time_constr": [21]
+  },
+  {
+    "teacher_id": 17,
+    "teacher_name": "Lucks",
+    "faculty": "M",
+    "course_names": ["Diskrete Strukturen", "Security Engineering"],
+    "hard_time_constr": [19, 29],
+    "soft_time_constr": [38]
+  },
+  {
+    "teacher_id": 18,
+    "teacher_name": "Leuther",
+    "faculty": "M",
+    "course_names": ["Diskrete Strukturen", "Security Engineering"],
+    "hard_time_constr": [],
+    "soft_time_constr": [9]
+  },
+  {
+    "teacher_id": 19,
+    "teacher_name": "Atkinson",
+    "faculty": "M",
+    "course_names": ["Academic English Part One", "Academic English Part Two"],
+    "hard_time_constr": [3, 11, 19],
+    "soft_time_constr": [35]
+  },
+  {
+    "teacher_id": 20,
+    "teacher_name": "Fröhlich",
+    "faculty": "M",
+    "course_names": ["Oberseminar Rendering", "Virtual Reality"],
+    "hard_time_constr": [14],
+    "soft_time_constr": [30]
+  },
+  {
+    "teacher_id": 21,
+    "teacher_name": "Soaibuzzaman",
+    "faculty": "M",
+    "course_names": ["Formal Methods for Software Engineering"],
+    "hard_time_constr": [3],
+    "soft_time_constr": []
+  },
+  {
+    "teacher_id": 22,
+    "teacher_name": "Lahmer",
+    "faculty": "B",
+    "course_names": ["Design and interpretation of experiments"],
+    "hard_time_constr": [30],
+    "soft_time_constr": [35]
+  },
+  {
+    "teacher_id": 23,
+    "teacher_name": "Jaouadi",
+    "faculty": "B",
+    "course_names": ["Design and interpretation of experiments"],
+    "hard_time_constr": [],
+    "soft_time_constr": [19]
+  },
+  {
+    "teacher_id": 24,
+    "teacher_name": "Das",
+    "faculty": "B",
+    "course_names": ["Design and interpretation of experiments"],
+    "hard_time_constr": [],
+    "soft_time_constr": []
+  },
+  {
+    "teacher_id": 25,
+    "teacher_name": "Bevendorff",
+    "faculty": "M",
+    "course_names": ["Introduction to Machine Learning"],
+    "hard_time_constr": [13],
+    "soft_time_constr": []
+  },
+  {
+    "teacher_id": 26,
+    "teacher_name": "Kanadan",
+    "faculty": "M",
+    "course_names": ["Introduction to Machine Learning"],
+    "hard_time_constr": [],
+    "soft_time_constr": [32]
+  },
+  {
+    "teacher_id": 27,
+    "teacher_name": "Schott",
+    "faculty": "M",
+    "course_names": ["Virtual Reality"],
+    "hard_time_constr": [],
+    "soft_time_constr": [6]
+  },
+  {
+    "teacher_id": 28,
+    "teacher_name": "Zöppig",
+    "faculty": "M",
+    "course_names": ["Virtual Reality"],
+    "hard_time_constr": [],
+    "soft_time_constr": []
+  },
+  {
+    "teacher_id": 29,
+    "teacher_name": "Brehm",
+    "faculty": "M",
+    "course_names": ["Virtual Reality"],
+    "hard_time_constr": [],
+    "soft_time_constr": []
+  },
+  {
+    "teacher_id": 30,
+    "teacher_name": "Adejoh",
+    "faculty": "M",
+    "course_names": ["Online Computation", "Digital Watermarking"],
+    "hard_time_constr": [35],
+    "soft_time_constr": [23]
+  },
+  {
+    "teacher_id": 31,
+    "teacher_name": "Tschirschwitz",
+    "faculty": "M",
+    "course_names": ["Deep Learning for Computer Vision"],
+    "hard_time_constr": [],
+    "soft_time_constr": [14]
+  },
+  {
+    "teacher_id": 32,
+    "teacher_name": "Eick",
+    "faculty": "M",
+    "course_names": ["Deep Learning for Computer Vision"],
+    "hard_time_constr": [],
+    "soft_time_constr": []
+  },
+  {
+    "teacher_id": 33,
+    "teacher_name": "Frolov",
+    "faculty": "M",
+    "course_names": ["Deep Learning for Computer Vision"],
     "hard_time_constr": [],
     "soft_time_constr": []
   }
